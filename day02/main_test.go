@@ -1,0 +1,23 @@
+package main
+
+import (
+	"aoc2023/utils"
+	"testing"
+)
+
+func TestDay02FirstPart(t *testing.T) {
+	fileByLines := utils.ReadFileByLines("test_input.txt")
+
+	got := 0
+	expected := 8
+	for _, line := range fileByLines {
+		game := parseGame(line)
+		if validateRules(game) {
+			got += game.ID
+		}
+	}
+
+	if got != expected {
+		t.Errorf("expected %d but got %d", expected, got)
+	}
+}
