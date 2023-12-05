@@ -12,7 +12,7 @@ func main() {
 	start := time.Now()
 	log.Printf("First part result: %d\n", firstPart("day03\\input.txt"))
 
-	//log.Printf("Second part result: %d\n", secondPart())
+	log.Printf("Second part result: %d\n", secondPart("day03\\input.txt"))
 	elapsed := time.Since(start)
 	log.Printf("Execution time %s", elapsed)
 }
@@ -41,6 +41,25 @@ func findSymbols(array [][]int32) []Cell {
 	for i := 0; i < len(array); i++ {
 		for j := 0; j < len(array[i]); j++ {
 			if !unicode.IsDigit(array[i][j]) && string(array[i][j]) != "." {
+				//log.Printf("Symbol %c was found on %d:%d", array[i][j], i, j)
+				cells = append(cells, Cell{
+					x: i,
+					y: j,
+					v: array[i][j],
+				})
+			}
+		}
+	}
+
+	return cells
+}
+
+func findGears(array [][]int32) []Cell {
+	cells := make([]Cell, 0)
+
+	for i := 0; i < len(array); i++ {
+		for j := 0; j < len(array[i]); j++ {
+			if string(array[i][j]) == "*" {
 				//log.Printf("Symbol %c was found on %d:%d", array[i][j], i, j)
 				cells = append(cells, Cell{
 					x: i,
@@ -91,7 +110,7 @@ func numberAround(array [][]int32, i int, j int) []Cell {
 		}
 	}
 
-	return numberCells
+	return uniqueCells(numberCells)
 }
 
 // TODO: helper function. Find whole number and its head
@@ -138,8 +157,26 @@ func findNumber(array [][]int32, x int, y int) *Cell {
 	}
 }
 
+func gearRatio(numberCells []Cell) int {
+	var result int32 = 1
+	for _, cell := range numberCells {
+		result *= cell.v
+	}
+
+	return int(result)
+}
+
 // TODO: Sum collected numbers
-func sumOfParts(numberCells []Cell) int32 {
+func sumOfParts(numberCells []Cell) int {
+	var result int32 = 0
+	for _, cell := range numberCells {
+		result += cell.v
+	}
+
+	return int(result)
+}
+
+func uniqueCells(numberCells []Cell) []Cell {
 	var unique []Cell
 
 loop:
@@ -152,13 +189,7 @@ loop:
 		}
 		unique = append(unique, v)
 	}
-
-	var result int32 = 0
-	for _, cell := range unique {
-		result += cell.v
-	}
-
-	return result
+	return unique
 }
 
 func firstPart(file string) int {
@@ -185,7 +216,35 @@ func firstPart(file string) int {
 	}
 
 	//log.Printf("Total found numbers around symbols: %v\n", cells)
-	result = int(sumOfParts(cells))
+	result = sumOfParts(cells)
+
+	return result
+}
+
+func secondPart(file string) int {
+	array := make([][]int32, 0)
+	fileByLines := utils.ReadFileByLines(file)
+
+	result := 0
+	for _, line := range fileByLines {
+		array = parseLine(array, line)
+	}
+
+	//log.Printf("array: %c\n", array)
+	gears := findGears(array)
+	//log.Printf("Found gears. %v", gears)
+	//number := findNumber(array, 0, 4)
+	//log.Printf("Whole number = %d found with head on coords: %d:%d", number.v, number.x, number.y)
+
+	//numbersAround := numberAround(array, 1, 3)
+	//log.Printf("Found numbers around %d:%d - %+v", 0, 3, numbersAround)
+
+	for _, symbolCell := range gears {
+		aroundGears := numberAround(array, symbolCell.x, symbolCell.y)
+		if len(aroundGears) > 1 {
+			result += gearRatio(aroundGears)
+		}
+	}
 
 	return result
 }
